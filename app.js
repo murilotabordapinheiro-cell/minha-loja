@@ -69,6 +69,62 @@ async function conectar(){
     } 
 }
 
-    
+function entrarEdicao(p) {
+    $("editId").value = p.id;
+    $("nome").value = p.nome;
+    $("preco").value  = p.preco;
+    $("estoque").value = p.estoque;
+    $("categoriaId").value = p.categoriaId;
+    $("formTitulo").textContent = "Editar Produto";
+    $("salvarProduto").textContent = "Salvar";
+    $("cancelar").hidden = false;
+}
 
-  
+function limparForm() {
+    $("editId").value = "";
+    $("nome").value = $("preco").value = "";
+    $("formTitulo").textContent = "Novo produto";
+    $("salvarProduto").textContent = "Adicionar";
+    $("cancelar").hidden = true;
+    $("formErro").textContent = "";
+}
+
+async function salvarProduto() {
+    const corpo = {
+        nome: $("nome").value,
+        preco: $("preco").value,
+        estoque: $("estoque").value,
+        categoriaId: $(categoriaId).value,
+    };
+    const id = $("editId").value;
+    const url =id ? `${API}/produtos/${id}` : `${API}/produtos`;
+    const metodo = id ? "PUT" : "POST";
+    const resp = await fetch(url, {
+        method: metodo, 
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(corpo),
+    });
+    const dados = await resp.json();
+      if (!resp.ok) { $("formErro").textContent = "!" + (dados.erro || "Erro"); return; }
+      limparForm();
+    carregarProdutos();
+}
+
+document.addEventListener("click", async (e) => {
+    if (e.target.dataset.del) {
+        await fetch(`${API}/produtos/${e.target.dataset.del}`, {method: "DELETE" });
+        carregarProdutos();
+    }
+    if (e.target.fataset.ed) {
+        const resp = await fetch(`${API}/produtos/${e.target.dataset.ed}`);
+      entrarEdicao(await resp.json());
+        }
+});
+$("salvarUrl").addEventListener("click", conectar);
+$("salvarProduto").addEventListener("click", salvarProduto);
+$("cancelar").addEventListener("click", limparForm);
+$("recarregar").addEventListener("click", carregarProdutos);
+$("filtoCategoria").addEventListener("change", carregarProdutos);
+$("ordenar").addEventListener("change", carregarProdutos);
+
+conectar();
